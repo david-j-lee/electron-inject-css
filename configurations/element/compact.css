@@ -1,0 +1,57 @@
+/* Panels */
+.mx_SpacePanel {
+  display: none;
+}
+
+/* Room Listing */
+.mx_RoomList {
+  height: 100%;
+}
+
+.mx_RoomList .mx_RoomSublist .mx_RoomSublist_resizeBox {
+  overflow: auto;
+}
+
+.mx_RoomList .mx_RoomTile {
+  height: auto;
+}
+
+.mx_RoomList img.mx_BaseAvatar_image {
+  display: none;
+}
+
+.mx_RoomList .mx_DecoratedRoomAvatar {
+  width: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mx_RoomList .mx_DecoratedRoomAvatar_icon {
+  position: relative;
+  bottom: unset;
+  right: unset;
+}
+
+.mx_RoomList .mx_RoomSublist_tiles {
+  flex: unset !important;
+}
+
+.mx_RoomList .mx_RoomSublist_resizeBox[style] {
+  height: fit-content !important;
+  min-height: unset !important;
+  max-height: unset !important;
+}
+
+/* Chat */
+.mx_RoomView_MessageList .mx_MatrixChat_useCompactLayout.mx_EventTile.mx_EventTile_avatar {
+  display: none;
+}
+
+.mx_RoomView_MessageList .mx_SenderProfile {
+  width: auto;
+}
+
+.mx_RoomView_MessageList .mx_IRCLayout {
+  --name-width: unset;
+}

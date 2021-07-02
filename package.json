@@ -1,0 +1,33 @@
+{
+  "name": "@electron-inject-css/electron-inject-css",
+  "version": "0.0.0",
+  "description": "Injects CSS into Electron Apps",
+  "main": "src/index.js",
+  "bin": {
+    "@electron-inject-css/electron-inject-css": "bin/electron-inject-css",
+    "electron-inject-css": "bin/electron-inject-css"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Electron",
+    "Inject",
+    "CSS"
+  ],
+  "author": "David Lee",
+  "license": "MIT",
+  "dependencies": {
+    "arg": "^5.0.0",
+    "asar": "^3.0.3",
+    "chalk": "^4.1.1",
+    "esm": "^3.2.25",
+    "fs-extra": "^10.0.0",
+    "glob": "^7.1.7",
+    "glob-promise": "^4.2.0",
+    "inquirer": "^8.1.1",
+    "listr": "^0.14.3",
+    "node-html-parser": "^3.3.6",
+    "ora": "^5.4.1"
+  }
+}
