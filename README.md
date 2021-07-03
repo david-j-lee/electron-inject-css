@@ -20,3 +20,7 @@ Run without having to install anything with `npx electron-inject-css`.
 - `--style-dest` Glob path to where the css will be stored in unpacked asar
 - `--verbose` | `-v` Shows more detailed logging
 - `--yes` | `-y` Skips the confirmation
+
+### Known Limitations
+
+- Theme support only works on Windows, more support coming soon.
