@@ -1,17 +1,61 @@
+import os from 'os';
+import fs from 'fs-extra';
+
 import asar from 'asar';
 import chalk from 'chalk';
-import fs from 'fs-extra';
 import glob from 'glob-promise';
 import { parse } from 'node-html-parser';
 
-const saveStylesToUnpackedAsar = async (output, styleOutput, style) => {
-  console.log(`Looking for places to output styles that match glob ${style}.`);
-  const styleOutputPaths = await glob(styleOutput, { cwd: output });
-  console.log(`${styleOutputPaths.length} output location(s) found.`);
-  for (const styleOutputPath of styleOutputPaths) {
-    const stylePath = style.split('/');
-    const styleFileName = stylePath.pop();
-    const copyStyleTo = `${output}/${styleOutputPath}/${styleFileName}`;
+import { getDirectory, getFileName, normalizePath } from './utils';
+
+const verifyOptions = async (options) => {
+  // Replace %USER_HOME% with the users home directory
+  if (options.path) {
+    options.path = options.path.replace(
+      '%USER_HOME%',
+      normalizePath(os.homedir())
+    );
+  }
+
+  // Replace the path glob with the first matching real path
+  const path = getDirectory(options.path);
+  const fileName = getFileName(options.path);
+  const paths = await glob(path);
+  if (paths.length === 0) {
+    console.log(
+      `${chalk.red.bold('ERROR:')} Unable to locate path ${options.path}`
+    );
+    process.exit(1);
+  }
+  options.path = `${paths[paths.length - 1]}/${fileName}`;
+
+  if (!options.output) {
+    options.output = options.path + '-unpacked';
+  }
+};
+
+const backupAsar = async (path) => {
+  const backupPath = `${path}.bak`;
+  console.log(`Creating back up of ${path} at ${backupPath}`);
+  await fs.copy(path, backupPath);
+};
+
+const extractAsar = (asarPath, dest) => {
+  console.log(`Extracting ${asarPath} to ${dest}`);
+  asar.extractAll(asarPath, dest);
+};
+
+const saveStyles = async (src, styleGlob, style) => {
+  console.log(
+    `Looking for places to output styles that match glob ${styleGlob}.`
+  );
+  const styleSrc = await glob(styleGlob, { cwd: src });
+  console.log(
+    `${styleSrc.length} output location(s) found. Use first location.`
+  );
+  const styleFileName = getFileName(style);
+  for (const styleOutputPath of styleSrc) {
+    const copyStyleTo = `${src}/${styleOutputPath}/${styleFileName}`;
     console.log(`Saving ${style} to ${copyStyleTo}`);
     await fs.copy(style, copyStyleTo);
     // only need to put style in first location found
@@ -19,50 +63,51 @@ const saveStylesToUnpackedAsar = async (output, styleOutput, style) => {
   }
 };
 
-const updateHtmlFiles = async (output, htmlGlob, styleOutput) => {
-  console.log(`Looking for html files in ${output} with glob of ${htmlGlob}`);
-  const htmlPaths = await glob(htmlGlob, { cwd: output });
+const insertLinkToStylesInHtml = async (src, htmlGlob, styleSrc) => {
+  console.log(`Looking for html files in ${src} with glob of ${htmlGlob}`);
+  const htmlPaths = await glob(htmlGlob, { cwd: src });
   console.log(`${htmlPaths.length} html file(s) found.`);
   for (const htmlPath of htmlPaths) {
-    const htmlFile = await fs.readFile(`${output}/${htmlPath}`, 'utf8');
+    const htmlFile = await fs.readFile(`${src}/${htmlPath}`, 'utf8');
     console.log(`Parsing ${htmlPath}.`);
-    const parsedHtml = parse(htmlFile);
-    const headTag = parsedHtml.querySelector('head');
-    if (headTag) {
+    const root = parse(htmlFile);
+    const head = root.querySelector('head');
+    if (head) {
       console.log(
         `Head tag found, adding custom style reference to ${htmlPath}.`
       );
-      console.log(styleOutput);
-      headTag.appendChild(`<link rel="stylesheet" href="${styleOutput}">`);
-      console.log(`Saving updated HTML to ${output}/${htmlPath}.`);
-      fs.writeFile(`${output}/${htmlPath}`, parsedHtml.toString(), 'utf8');
+      const newStylesheet = parse(`<link rel="stylesheet" href="${styleSrc}">`);
+      head.appendChild(newStylesheet);
+      console.log(`Saving updated HTML to ${src}/${htmlPath}.`);
+      fs.writeFile(`${src}/${htmlPath}`, root.toString(), 'utf8');
     } else {
       console.log(`Head tag not found, skipping.`);
     }
   }
 };
 
-export const injectCss = async (options) => {
-  if (!options.output) {
-    options.output = options.path + '-unpacked';
-  }
+const repackAsar = (src, dest) => {
+  console.log(`Repacking ${src} to ${dest}`);
+  asar.createPackage(src, dest);
+};
 
-  const backupPath = `${options.path}.bak`;
-  console.log(`Creating back up of ${options.path} at ${backupPath}`);
-  await fs.copy(options.path, backupPath);
+const cleanUpOldFiles = (tmp) => {
+  fs.remove(tmp);
+};
 
-  console.log(`Extracting ${options.path} to ${options.output}`);
-  asar.extractAll(options.path, options.output);
+export const injectCss = async (o) => {
+  await verifyOptions(o);
 
-  const styleOutput = await saveStylesToUnpackedAsar(
-    options.output,
-    options.styleOutput,
-    options.style
-  );
+  console.log(o);
 
-  await updateHtmlFiles(options.output, options.html, styleOutput);
+  backupAsar(o.path);
+  extractAsar(o.path, o.output);
 
-  asar.createPackage(options.output, options.path);
+  const styleSrc = await saveStyles(o.output, o.styleOutput, o.style);
+  await insertLinkToStylesInHtml(o.output, o.html, styleSrc);
+
+  repackAsar(o.output, o.path);
+  cleanUpOldFiles(o.output);
 
   console.log(`${chalk.green.bold('DONE')}`);
   return true;
