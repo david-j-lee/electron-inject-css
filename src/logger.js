@@ -3,8 +3,8 @@
 import chalk from 'chalk';
 
 export class Logger {
-  constructor({ verbose }) {
-    this.showVerbose = verbose;
+  constructor(props) {
+    this.showVerbose = props ? props.verbose : false;
   }
 
   error(message, optionalParams) {
