@@ -1,5 +1,5 @@
 {
-  "name": "@electron-inject-css/electron-inject-css",
+  "name": "electron-inject-css",
   "version": "0.0.0",
   "description": "Injects CSS into Electron Apps",
   "main": "src/index.js",
