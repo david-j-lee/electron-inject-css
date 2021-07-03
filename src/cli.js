@@ -7,13 +7,20 @@ import { getProducts, getThemes, getTheme } from './themes';
 import { normalizePath } from './utils';
 
 const helpMessage = chalk`
-  {bold USAGE}
+{bold Usage}
+  {dim $} {bold electron-inject-css} [--help | -h] [--html] [--src] [--src-bin] [--style]
+                        [--style-dest] [--verbose | -v] [--yes | -y]
+                        <product> <theme>
 
-    {dim $} {bold electron-inject-css} [--help] --string {underline some-arg}
-
-  {bold OPTIONS}
-    --help                      Shows this help message
-    --string {underline some-arg}           A string flag
+{bold Options}
+  --help | -h      Shows this help message
+  --html           Glob path to the HTML file in the unpacked asar
+  --src            Glob path to the asar file
+  --src-bin        Path to where the asar file will be unpacked too
+  --style          Path to the css file to be injected
+  --style-dest     Glob path to where the css will be stored in unpacked asar
+  --verbose | -v   Shows more detailed logging
+  --yes | -y       Skips the confirmation
 `;
 
 const args = {
@@ -24,8 +31,10 @@ const args = {
   '--style': String,
   '--style-dest': String,
   '--verbose': Boolean,
+  '--yes': Boolean,
   '-h': '--help',
   '-v': '--verbose',
+  '-y': '--yes',
 };
 
 export const cli = async (args) => {
@@ -36,6 +45,8 @@ export const cli = async (args) => {
   }
 
   options = await checkInputs(options);
+
+  options = await confirmBeforeProceeding(options);
 
   await injectCss(options);
 };
@@ -184,7 +195,7 @@ const checkForMissingArgs = async (options) => {
       type: 'input',
       name: 'html',
       message: 'Input path to html file in unpacked asar.',
-      default: '**/*.html',
+      default: 'index.html',
     });
   }
 
@@ -192,5 +203,24 @@ const checkForMissingArgs = async (options) => {
   return {
     ...options,
     ...answers,
+  };
+};
+
+const confirmBeforeProceeding = async (options) => {
+  const questions = [];
+  if (!options.yes) {
+    questions.push({
+      type: 'confirm',
+      name: 'yes',
+      message: `Running this program will modify files on disk. Are you sure you want to continue?`,
+    });
+  }
+  const answer = await inquirer.prompt(questions);
+  if (!answer.yes) {
+    process.exit(0);
+  }
+  return {
+    ...options,
+    yes: true,
   };
 };
