@@ -1,6 +1,6 @@
 {
   "name": "@electron-inject-css/electron-inject-css",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Injects CSS into Electron Apps",
   "main": "src/index.js",
   "bin": {
@@ -8,7 +8,8 @@
     "electron-inject-css": "bin/electron-inject-css"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "publish": "np"
   },
   "keywords": [
     "Electron",
@@ -35,7 +36,8 @@
   },
   "devDependencies": {
     "jest": "^27.0.6",
-    "jest-esm-transformer": "^1.0.0"
+    "jest-esm-transformer": "^1.0.0",
+    "np": "^7.5.0"
   },
   "jest": {
     "transform": {
