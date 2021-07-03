@@ -1,12 +1,14 @@
 {
   "extends": "eslint:recommended",
   "env": {
-    "node": true
+    "node": true,
+    "jest/globals": true
   },
   "parserOptions": {
     "sourceType": "module",
     "ecmaVersion": 2020
   },
+  "plugins": ["jest"],
   "rules": {
     "no-console": "error"
   }

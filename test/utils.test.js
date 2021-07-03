@@ -1,6 +1,8 @@
-const { normalizePath } = require('../src/utils');
+import { normalizePath } from '../src/utils';
 
-test('normalize path should replace \\ with /', () => {
-  const normalizedPath = normalizePath('\\some\\path');
-  expect(normalizedPath).toBe('/some/path');
+describe('normalizePath', () => {
+  test('normalize path should replace "\\" with "/"', () => {
+    const normalizedPath = normalizePath('\\some\\path');
+    expect(normalizedPath).toBe('/some/path');
+  });
 });
