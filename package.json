@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Injects CSS into Electron Apps",
   "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/david-j-lee/electron-inject-css.git"
+  },
   "bin": {
     "@electron-inject-css/electron-inject-css": "bin/electron-inject-css",
     "electron-inject-css": "bin/electron-inject-css"
