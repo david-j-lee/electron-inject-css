@@ -11,6 +11,9 @@
     "@electron-inject-css/electron-inject-css": "bin/electron-inject-css",
     "electron-inject-css": "bin/electron-inject-css"
   },
+  "engines": {
+    "node": ">=11.0.0"
+  },
   "scripts": {
     "test": "jest && eslint src && jshint src",
     "np": "np"
