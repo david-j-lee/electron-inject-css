@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "jest",
-    "publish": "np"
+    "np": "np"
   },
   "keywords": [
     "Electron",
