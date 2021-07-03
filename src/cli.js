@@ -1,10 +1,16 @@
+import os from 'os';
+
 import arg from 'arg';
 import chalk from 'chalk';
+import glob from 'glob-promise';
 import inquirer from 'inquirer';
 
 import { injectCss } from './main';
 import { getProducts, getThemes, getTheme } from './themes';
-import { normalizePath } from './utils';
+import { getDirectory, getFileName, normalizePath } from './utils';
+import { Logger } from './logger';
+
+let logger = new Logger();
 
 const helpMessage = chalk`
 {bold Usage}
@@ -39,6 +45,7 @@ const args = {
 
 export const cli = async (args) => {
   let options = parseArgs(args);
+  logger.showVerbose = options.showVerbose;
 
   if (options.help) {
     showHelp();
@@ -72,13 +79,13 @@ const parseArgs = (rawArgs) => {
       verbose: a['--verbose'],
     };
   } catch (error) {
-    console.error(error.message);
+    logger.error(error.message);
     process.exit(1);
   }
 };
 
 const showHelp = () => {
-  console.log(helpMessage);
+  logger.log(helpMessage);
   process.exit(0);
 };
 
@@ -127,7 +134,7 @@ const checkForTheme = async (options) => {
   if (!options.theme) {
     const themes = getThemes(productInput);
     if (!themes || themes.length === 0) {
-      console.log(`No themes found for ${productInput}.`);
+      logger.log(`No themes found for ${productInput}.`);
       process.exit(1);
     }
     themeQuestions.push({
@@ -141,23 +148,51 @@ const checkForTheme = async (options) => {
 
   const theme = getTheme(productInput, themeInput);
   if (!theme) {
-    console.log(
-      `${chalk.red.bold(
-        ERROR
-      )} unable to locate the theme ${themeInput} for ${productInput}`
+    logger.error(
+      `Unable to locate the theme ${themeInput} for ${productInput}.`
     );
     process.exit(1);
   }
 
+  const src = await getSrcFromTheme(productInput, theme.src);
+
   return {
     ...options,
     ...theme,
+    src,
     style: `${normalizePath(__dirname)}/themes/${productInput.toLowerCase()}/${
       theme.style
     }`,
     product: productInput,
     theme: themeInput,
   };
+};
+
+const getSrcFromTheme = async (product, paths) => {
+  for (const path of paths) {
+    // Replace %USER_HOME% with the users home directory
+    let parsedPath = path;
+    if (path) {
+      parsedPath = path.replace('%USER_HOME%', normalizePath(os.homedir()));
+    }
+    // Replace the path glob with the first matching real path
+    const src = getDirectory(parsedPath);
+    const fileName = getFileName(parsedPath);
+    const sources = await glob(src);
+    if (sources.length > 0) {
+      return `${sources[sources.length - 1]}/${fileName}`;
+    }
+  }
+  const questions = [
+    {
+      type: 'input',
+      name: 'src',
+      message: `Unable to locate the path to the asar file for ${product}, please input one.`,
+      default: 'app.asar',
+    },
+  ];
+  const answer = await inquirer.prompt(questions);
+  return answer.src;
 };
 
 const checkForMissingArgs = async (options) => {

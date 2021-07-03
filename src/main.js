@@ -1,4 +1,3 @@
-import os from 'os';
 import fs from 'fs-extra';
 
 import asar from 'asar';
@@ -6,13 +5,13 @@ import chalk from 'chalk';
 import glob from 'glob-promise';
 import { parse } from 'node-html-parser';
 
-import { getDirectory, getFileName, normalizePath } from './utils';
+import { getFileName } from './utils';
 import { Logger } from './logger';
 
-let logger = null;
+const logger = new Logger();
 
 export const injectCss = async (o) => {
-  logger = new Logger({ verbose: o.verbose });
+  logger.showVerbose = o.verbose;
 
   await verifyOptions(o);
 
@@ -26,7 +25,7 @@ export const injectCss = async (o) => {
   await insertLinkToStylesInHtml(o.srcBin, o.html, styleRef);
 
   repackAsar(o.srcBin, o.src);
-  // TODO: I keep getting this in console when cleanUpOldFiles is uncommented
+  // TODO: I keep getting this in console when cleanUpOldFiles is not commented
   // (node:1180) UnhandledPromiseRejectionWarning: Error: ENOENT: no such file or directory, lstat 'path_to_the_unpacked_asar'
   // Disabled, till this error message can be figured out.
   // await cleanUpOldFiles(o.srcBin);
@@ -36,24 +35,6 @@ export const injectCss = async (o) => {
 };
 
 const verifyOptions = async (options) => {
-  // Replace %USER_HOME% with the users home directory
-  if (options.src) {
-    options.src = options.src.replace(
-      '%USER_HOME%',
-      normalizePath(os.homedir())
-    );
-  }
-
-  // Replace the path glob with the first matching real path
-  const src = getDirectory(options.src);
-  const fileName = getFileName(options.src);
-  const sources = await glob(src);
-  if (sources.length === 0) {
-    logger.error(chalk`Unable to locate path {yellow ${options.src}}.`);
-    process.exit(1);
-  }
-  options.src = `${sources[sources.length - 1]}/${fileName}`;
-
   if (!options.srcBin) {
     options.srcBin = options.src + '-unpacked';
   }
@@ -138,6 +119,8 @@ const repackAsar = (src, dest) => {
   asar.createPackage(src, dest);
 };
 
+// TODO: Fix or remove
+// eslint-disable-next-line no-unused-vars
 const cleanUpOldFiles = async (srcBin) => {
   logger.verbose(chalk`Removing temporary src bin {blue ${srcBin}}.`);
   await fs.remove(srcBin);
