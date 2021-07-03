@@ -3,9 +3,9 @@
   "themes": [
     {
       "name": "Compact",
-      "path": "%USER_HOME%/AppData/Local/element-desktop/*/resources/webapp.asar",
+      "src": "%USER_HOME%/AppData/Local/element-desktop/*/resources/webapp.asar",
       "style": "compact.css",
-      "styleOutput": "bundles/*",
+      "styleDest": "bundles/*",
       "html": "index.html"
     }
   ]

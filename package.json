@@ -21,13 +21,12 @@
     "arg": "^5.0.0",
     "asar": "^3.0.3",
     "chalk": "^4.1.1",
+    "del": "^6.0.0",
     "esm": "^3.2.25",
     "fs-extra": "^10.0.0",
     "glob": "^7.1.7",
     "glob-promise": "^4.2.0",
     "inquirer": "^8.1.1",
-    "listr": "^0.14.3",
-    "node-html-parser": "^3.3.6",
-    "ora": "^5.4.1"
+    "node-html-parser": "^3.3.6"
   }
 }
