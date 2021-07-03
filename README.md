@@ -6,6 +6,8 @@
 Node CLI to inject a CSS file into an asar file. Running this program will
 modify your files on disk.
 
+It is recommended to use node version 12 or higher.
+
 ## Usage
 
 Run without having to install anything with `npx electron-inject-css`.

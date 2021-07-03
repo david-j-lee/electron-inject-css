@@ -4,6 +4,7 @@ import arg from 'arg';
 import chalk from 'chalk';
 import glob from 'glob-promise';
 import inquirer from 'inquirer';
+import semver from 'semver';
 
 import { injectCss } from './main';
 import { getProducts, getThemes, getTheme } from './themes';
@@ -44,6 +45,8 @@ const args = {
 };
 
 export const cli = async (args) => {
+  checkVersion();
+
   let options = parseArgs(args);
   logger.showVerbose = options.showVerbose;
 
@@ -56,6 +59,21 @@ export const cli = async (args) => {
   options = await confirmBeforeProceeding(options);
 
   await injectCss(options);
+};
+
+const checkVersion = () => {
+  const lowestSupported = '11.0.0';
+  const lowestRecommended = '12.0.0';
+  const version = process.version;
+  if (semver.lt(version, lowestSupported)) {
+    logger.error(
+      `Node version ${version} is not supported. Please install version ${lowestRecommended}+.`
+    );
+    process.exit(1);
+  }
+  if (semver.lt(version, lowestRecommended)) {
+    logger.warn(`Node version ${lowestRecommended}+ is recommended.`);
+  }
 };
 
 const parseArgs = (rawArgs) => {

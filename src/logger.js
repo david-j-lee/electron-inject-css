@@ -15,6 +15,14 @@ export class Logger {
     }
   }
 
+  warn(message,optionalParams) {
+    if (optionalParams) {
+      console.info(chalk`{yellow WARN} ${message}`, optionalParams);
+    } else {
+      console.info(chalk`{yellow WARN} ${message}`);
+    }
+  }
+
   log(message, optionalParams) {
     if (optionalParams) {
       console.log(message, optionalParams);
