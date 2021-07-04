@@ -106,12 +106,12 @@ const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
 
   // Check if css file is already linked
   logger.verbose(
-    chalk`Head tag {green found}, adding css reference {blue ${cssRef}} to {blue ${htmlPath}}.`
+    chalk`Head tag {green found}, adding css reference {cyan ${cssRef}} to {blue ${htmlPath}}.`
   );
   const existingLinkTag = head.querySelector(`link[href="${cssRef}"]`);
   if (existingLinkTag) {
     logger.verbose(
-      chalk`Link to stylesheet skipped, {blue ${cssRef}}, already found.`
+      chalk`Link to stylesheet skipped, {cyan ${cssRef}}, already found.`
     );
     return;
   }
