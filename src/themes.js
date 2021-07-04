@@ -3,7 +3,7 @@ const elementThemes = require('./themes/element/config.json');
 const configs = [elementThemes];
 
 const getProducts = () => {
-  return configs.map((c) => c.name);
+  return configs.map((config) => config.name);
 };
 
 const getThemes = (productName) => {
@@ -21,7 +21,7 @@ const getProduct = (product) => {
 };
 
 const getTheme = (productName, theme) => {
-  if (!productName) {
+  if (!productName || !theme) {
     return null;
   }
   const product = getProduct(productName);
