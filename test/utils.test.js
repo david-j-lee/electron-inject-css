@@ -6,6 +6,14 @@ describe('normalizePath', () => {
     const normalizedPath = normalizePath('\\some\\path');
     expect(normalizedPath).to.equal('/some/path');
   });
+  it('should return path without any slashes', () => {
+    const normalizedPath = normalizePath('a-basic-path');
+    expect(normalizedPath).to.equal('a-basic-path');
+  });
+  it('should return null for null', () => {
+    const normalizedPath = normalizePath();
+    expect(normalizedPath).to.not.be.ok;
+  });
 });
 
 describe('getFileName', () => {
