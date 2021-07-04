@@ -1,50 +1,55 @@
-import os from 'os';
+const os = require('os');
 
-import arg from 'arg';
-import chalk from 'chalk';
-import glob from 'glob-promise';
-import inquirer from 'inquirer';
-import semver from 'semver';
+const arg = require('arg');
+const chalk = require('chalk');
+const glob = require('glob-promise');
+const inquirer = require('inquirer');
+const semver = require('semver');
 
-import { injectCss } from './main';
-import { getProducts, getThemes, getTheme } from './themes';
-import { getDirectory, getFileName, normalizePath } from './utils';
-import { Logger } from './logger';
+const { injectCss } = require('./main');
+const { getProducts, getThemes, getTheme } = require('./themes');
+const { getDirectory, getFileName, normalizePath } = require('./utils');
+const { Logger } = require('./logger');
 
 let logger = new Logger();
 
 const helpMessage = chalk`
 {bold Usage}
-  {dim $} {bold electron-inject-css} [--help | -h] [--html] [--src] [--src-bin] [--style]
-                        [--style-dest] [--verbose | -v] [--yes | -y]
+  {dim $} {bold electron-inject-css} [--css | -c] [--css-dest | -d] [--help | -h] [--html | -t]
+                        [--src | -s] [--src-bin | -b] [--verbose | -v] [--yes | -y]
                         <product> <theme>
 
 {bold Options}
   --help | -h      Shows this help message
-  --html           Glob path to the HTML file in the unpacked asar
-  --src            Glob path to the asar file
-  --src-bin        Path to where the asar file will be unpacked too
-  --style          Path to the css file to be injected
-  --style-dest     Glob path to where the css will be stored in unpacked asar
+  --html | -t      Glob path to the HTML file in the unpacked asar
+  --src | -s       Glob path to the asar file
+  --src-bin | -b   Path to where the asar file will be unpacked too
+  --css | -c       Path to the css file to be injected
+  --css-dest | -d  Glob path to where the css will be stored in unpacked asar
   --verbose | -v   Shows more detailed logging
   --yes | -y       Skips the confirmation
 `;
 
 const args = {
+  '--css': String,
+  '--css-dest': String,
   '--help': Boolean,
   '--html': String,
   '--src': String,
   '--src-bin': String,
-  '--style': String,
-  '--style-dest': String,
   '--verbose': Boolean,
   '--yes': Boolean,
+  '-c': '--css',
+  '-d': '--css-dest',
   '-h': '--help',
+  '-t': '--html',
+  '-s': '--src',
+  '-b': '--src-bin',
   '-v': '--verbose',
   '-y': '--yes',
 };
 
-export const cli = async (args) => {
+const cli = async (args) => {
   checkVersion();
 
   let options = parseArgs(args);
@@ -55,7 +60,6 @@ export const cli = async (args) => {
   }
 
   options = await checkInputs(options);
-
   options = await confirmBeforeProceeding(options);
 
   await injectCss(options);
@@ -92,8 +96,8 @@ const parseArgs = (rawArgs) => {
       html: a['--html'],
       src: a['--src'],
       srcBin: a['--src-bin'],
-      style: a['--style'],
-      styleDest: a['--style-dest'],
+      css: a['--css'],
+      cssDest: a['--css-dest'],
       verbose: a['--verbose'],
     };
   } catch (error) {
@@ -112,12 +116,12 @@ const checkInputs = async (options) => {
   const wizardTypeManual = 'I would like to configure it myself.';
   const questions = [];
   if (
+    !options.css &&
+    !options.cssDest &&
     !options.help &&
     !options.html &&
     !options.src &&
-    !options.srcBin &&
-    !options.style &&
-    !options.styleDest
+    !options.srcBin
   ) {
     questions.push({
       type: 'list',
@@ -178,8 +182,8 @@ const checkForTheme = async (options) => {
     ...options,
     ...theme,
     src,
-    style: `${normalizePath(__dirname)}/themes/${productInput.toLowerCase()}/${
-      theme.style
+    css: `${normalizePath(__dirname)}/themes/${productInput.toLowerCase()}/${
+      theme.css
     }`,
     product: productInput,
     theme: themeInput,
@@ -225,20 +229,20 @@ const checkForMissingArgs = async (options) => {
     });
   }
 
-  if (!options.style) {
+  if (!options.css) {
     questions.push({
       type: 'input',
-      name: 'style',
+      name: 'css',
       message: 'Input path to css file.',
       default: 'style.css',
     });
   }
 
-  if (!options.styleDest) {
+  if (!options.cssDest) {
     questions.push({
       type: 'input',
-      name: 'styleDest',
-      message: 'Input dest for css style in unpacked asar.',
+      name: 'cssDest',
+      message: 'Input dest for css file in unpacked asar.',
       default: 'style.css',
     });
   }
@@ -265,6 +269,7 @@ const confirmBeforeProceeding = async (options) => {
     questions.push({
       type: 'confirm',
       name: 'yes',
+      // TODO: provide a listing of expected changes
       message: `Running this program will modify files on disk. Are you sure you want to continue?`,
     });
   }
@@ -277,3 +282,5 @@ const confirmBeforeProceeding = async (options) => {
     yes: true,
   };
 };
+
+module.exports = { cli };

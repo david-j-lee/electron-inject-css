@@ -14,15 +14,11 @@ Run without having to install anything with `npx electron-inject-css`.
 
 ### Options
 
-- `--help` | `-h` Shows this help message
-- `--html` Glob path to the HTML file in the unpacked asar
-- `--src` Glob path to the asar file
-- `--src-bin` Path to where the asar file will be unpacked too
-- `--style` Path to the css file to be injected
-- `--style-dest` Glob path to where the css will be stored in unpacked asar
-- `--verbose` | `-v` Shows more detailed logging
-- `--yes` | `-y` Skips the confirmation
-
-### Known Limitations
-
-- Theme support only works on Windows, more support coming soon.
+- `--help` | `-h`      Shows this help message
+- `--html` | `-t`      Glob path to the HTML file in the unpacked asar
+- `--src` | `-s`       Glob path to the asar file
+- `--src-bin` | `-b`   Path to where the asar file will be unpacked too
+- `--css` | `-c`       Path to the css file to be injected
+- `--css-dest` | `-d`  Glob path to where the css will be stored in unpacked asar
+- `--verbose` | `-v`   Shows more detailed logging
+- `--yes` | `-y`       Skips the confirmation

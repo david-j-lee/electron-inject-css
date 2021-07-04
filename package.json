@@ -8,14 +8,13 @@
     "url": "https://github.com/david-j-lee/electron-inject-css.git"
   },
   "bin": {
-    "@electron-inject-css/electron-inject-css": "bin/electron-inject-css",
     "electron-inject-css": "bin/electron-inject-css"
   },
   "engines": {
     "node": ">=11.0.0"
   },
   "scripts": {
-    "test": "jest && eslint src && jshint src",
+    "test": "mocha && eslint src && jshint src",
     "np": "np"
   },
   "keywords": [
@@ -33,7 +32,6 @@
     "arg": "^5.0.0",
     "asar": "^3.0.3",
     "chalk": "^4.1.1",
-    "esm": "^3.2.25",
     "fs-extra": "^10.0.0",
     "glob": "^7.1.7",
     "glob-promise": "^4.2.0",
@@ -42,16 +40,11 @@
     "semver": "^7.3.5"
   },
   "devDependencies": {
+    "chai": "^4.3.4",
     "eslint": "^7.30.0",
     "eslint-plugin-jest": "^24.3.6",
-    "jest": "^27.0.6",
-    "jest-esm-transformer": "^1.0.0",
     "jshint": "^2.13.0",
+    "mocha": "^9.0.2",
     "np": "^7.5.0"
-  },
-  "jest": {
-    "transform": {
-      ".js": "jest-esm-transformer"
-    }
   }
 }

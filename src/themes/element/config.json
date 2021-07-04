@@ -6,8 +6,8 @@
       "src": [
         "%USER_HOME%/AppData/Local/element-desktop/*/resources/webapp.asar"
       ],
-      "style": "compact.css",
-      "styleDest": "bundles/*",
+      "css": "compact.css",
+      "cssDest": "bundles/*",
       "html": "index.html"
     }
   ]

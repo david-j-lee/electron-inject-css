@@ -1,30 +1,41 @@
-import elementThemes from './themes/element/config.json';
+const elementThemes = require('./themes/element/config.json');
 
 const configs = [elementThemes];
 
-export const getProducts = () => {
+const getProducts = () => {
   return configs.map((c) => c.name);
 };
 
-export const getThemes = (product) => {
-  const p = getProduct(product);
-  return !p ? null : p.themes.map((theme) => theme.name);
+const getThemes = (productName) => {
+  const product = getProduct(productName);
+  return !product ? null : product.themes.map((theme) => theme.name);
 };
 
-export const getProduct = (product) => {
+const getProduct = (product) => {
   if (!product) {
     return null;
   }
-  return configs.find((c) => c.name.toLowerCase() === product.toLowerCase());
+  return configs.find(
+    (config) => config.name.toLowerCase() === product.toLowerCase()
+  );
 };
 
-export const getTheme = (product, theme) => {
+const getTheme = (productName, theme) => {
+  if (!productName) {
+    return null;
+  }
+  const product = getProduct(productName);
   if (!product) {
     return null;
   }
-  const p = getProduct(product);
-  if (!p) {
-    return null;
-  }
-  return p.themes.find((t) => t.name.toLowerCase() === theme.toLowerCase());
+  return product.themes.find(
+    (t) => t.name.toLowerCase() === theme.toLowerCase()
+  );
+};
+
+module.exports = {
+  getProducts,
+  getThemes,
+  getProduct,
+  getTheme,
 };

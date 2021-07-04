@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 
-import chalk from 'chalk';
+const chalk = require('chalk');
 
-export class Logger {
+class Logger {
   constructor(props) {
     this.showVerbose = props ? props.verbose : false;
   }
@@ -15,7 +15,7 @@ export class Logger {
     }
   }
 
-  warn(message,optionalParams) {
+  warn(message, optionalParams) {
     if (optionalParams) {
       console.info(chalk`{yellow WARN} ${message}`, optionalParams);
     } else {
@@ -41,3 +41,5 @@ export class Logger {
     }
   }
 }
+
+module.exports = { Logger };

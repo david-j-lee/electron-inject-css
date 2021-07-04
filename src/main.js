@@ -1,16 +1,16 @@
-import fs from 'fs-extra';
+const fs = require('fs-extra');
 
-import asar from 'asar';
-import chalk from 'chalk';
-import glob from 'glob-promise';
-import { parse } from 'node-html-parser';
+const asar = require('asar');
+const chalk = require('chalk');
+const glob = require('glob-promise');
+const { parse } = require('node-html-parser');
 
-import { getFileName } from './utils';
-import { Logger } from './logger';
+const { getFileName } = require('./utils');
+const { Logger } = require('./logger');
 
 const logger = new Logger();
 
-export const injectCss = async (o) => {
+const injectCss = async (o) => {
   logger.showVerbose = o.verbose;
 
   await verifyOptions(o);
@@ -21,8 +21,8 @@ export const injectCss = async (o) => {
   await backupAsar(o.src);
   extractAsar(o.src, o.srcBin);
 
-  const styleRef = await saveStyles(o.srcBin, o.styleDest, o.style);
-  await insertLinkToStylesInHtml(o.srcBin, o.html, styleRef);
+  const cssRef = await saveCss(o.srcBin, o.cssDest, o.css);
+  await insertLinkToCssInHtml(o.srcBin, o.html, cssRef);
 
   repackAsar(o.srcBin, o.src);
   // TODO: I keep getting this in console when cleanUpOldFiles is not commented
@@ -51,67 +51,79 @@ const extractAsar = (asarPath, dest) => {
   asar.extractAll(asarPath, dest);
 };
 
-const saveStyles = async (src, styleDestGlob, style) => {
+const saveCss = async (srcBin, cssDestGlob, cssSrc) => {
   logger.verbose(
-    chalk`Looking for places to output styles that match glob {cyan ${styleDestGlob}}.`
+    chalk`Looking for places to output css that match glob {cyan ${cssDestGlob}}.`
   );
 
-  const styleDestinations = await glob(styleDestGlob, { cwd: src });
-  if (styleDestinations.length === 0) {
+  const possibleCssDestinations = await glob(cssDestGlob, { cwd: srcBin });
+  if (possibleCssDestinations.length === 0) {
     logger.error(chalk`{red 0} output locations found.`);
     process.exit(1);
   } else {
     logger.verbose(
-      chalk`{green ${styleDestinations.length}} output location(s) found. Using first matching location.`
+      chalk`{green ${possibleCssDestinations.length}} output location(s) found. Using first matching location.`
     );
   }
 
-  const styleFileName = getFileName(style);
-  const styleDest = styleDestinations[styleDestinations.length - 1];
-  const copyStyleTo = `${src}/${styleDest}/${styleFileName}`;
-  logger.verbose(chalk`Saving {blue ${style}} to {blue ${copyStyleTo}}`);
-  await fs.copy(style, copyStyleTo);
-  return `${styleDest}/${styleFileName}`;
+  const cssFileName = getFileName(cssSrc);
+  const cssDest = possibleCssDestinations[possibleCssDestinations.length - 1];
+  const copyCssTo = `${srcBin}/${cssDest}/${cssFileName}`;
+  logger.verbose(chalk`Saving {blue ${cssSrc}} to {blue ${copyCssTo}}`);
+  await fs.copy(cssSrc, copyCssTo);
+  return `${cssDest}/${cssFileName}`;
 };
 
-const insertLinkToStylesInHtml = async (src, htmlGlob, styleSrc) => {
+const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
   logger.verbose(
-    chalk`Looking for html files in {blue ${src}} with glob of {cyan ${htmlGlob}}`
+    chalk`Looking for html files in {blue ${srcBin}} with glob of {cyan ${htmlGlob}}`
   );
 
-  const htmlPaths = await glob(htmlGlob, { cwd: src });
-  if (htmlPaths.length === 0) {
+  const possibleHtmlFiles = await glob(htmlGlob, { cwd: srcBin });
+  if (possibleHtmlFiles.length === 0) {
     logger.error(
       chalk`{red 0} html destinations found for html glob {cyan ${htmlGlob}}`
     );
     process.exit(1);
   }
-  logger.verbose(chalk`{green ${htmlPaths.length}} html file(s) found.`);
+  logger.verbose(
+    chalk`{green ${possibleHtmlFiles.length}} html file(s) found.`
+  );
 
-  const htmlPath = htmlPaths[htmlPaths.length - 1];
-  const htmlFile = await fs.readFile(`${src}/${htmlPath}`, 'utf8');
+  // generate the path to the HTML file
+  const partialHtmlPath = possibleHtmlFiles[possibleHtmlFiles.length - 1];
+  const htmlPath = `${srcBin}/${partialHtmlPath}`;
+
+  logger.verbose(chalk`Reading {blue ${htmlPath}}.`);
+  const htmlFile = await fs.readFile(htmlPath, 'utf8');
   logger.verbose(chalk`Parsing {blue ${htmlPath}}.`);
   const root = parse(htmlFile);
   const head = root.querySelector('head');
-  if (head) {
-    logger.verbose(
-      chalk`Head tag {green found}, adding custom style reference to ${htmlPath}.`
-    );
-    const existingStylesheet = head.querySelector(`link[href="${styleSrc}"]`);
-    if (existingStylesheet) {
-      logger.verbose(
-        chalk`Link to stylesheet, {blue ${styleSrc}}, already found in HTML.`
-      );
-    } else {
-      const newStylesheet = parse(`<link rel="stylesheet" href="${styleSrc}">`);
-      head.appendChild(newStylesheet);
-      logger.verbose(chalk`Stylesheet, {blue ${styleSrc}}, linked in HTML.`);
-      logger.verbose(chalk`Saving updated HTML to {blue ${src}/${htmlPath}}.`);
-      await fs.writeFile(`${src}/${htmlPath}`, root.toString(), 'utf8');
-    }
-  } else {
+  if (!head) {
     logger.verbose(`Head tag not found, skipping.`);
+    return;
   }
+
+  // Check if css file is already linked
+  logger.verbose(
+    chalk`Head tag {green found}, adding custom css reference to ${htmlPath}.`
+  );
+  const existingStylesheetLinkTag = head.querySelector(
+    `link[href="${cssRef}"]`
+  );
+  if (existingStylesheetLinkTag) {
+    logger.verbose(
+      chalk`Link to stylesheet, {blue ${cssRef}}, already found in HTML.`
+    );
+    return;
+  }
+
+  // If not already linked, then link it and save.
+  const stylesheetLinkTag = parse(`<link rel="stylesheet" href="${cssRef}">`);
+  head.appendChild(stylesheetLinkTag);
+  logger.verbose(chalk`Stylesheet, {blue ${cssRef}}, linked in HTML.`);
+  logger.verbose(chalk`Saving updated HTML to {blue ${htmlPath}}.`);
+  await fs.writeFile(`${htmlPath}`, root.toString(), 'utf8');
 };
 
 const repackAsar = (src, dest) => {
@@ -125,3 +137,5 @@ const cleanUpOldFiles = async (srcBin) => {
   logger.verbose(chalk`Removing temporary src bin {blue ${srcBin}}.`);
   await fs.remove(srcBin);
 };
+
+module.exports = { injectCss };
