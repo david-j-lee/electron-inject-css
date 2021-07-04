@@ -1,3 +1,4 @@
 node_modules/
 .asar
 *-unpacked
+.nyc_output/

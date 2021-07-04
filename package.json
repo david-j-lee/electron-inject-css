@@ -14,7 +14,7 @@
     "node": ">=11.0.0"
   },
   "scripts": {
-    "test": "mocha && eslint src && jshint src",
+    "test": "nyc mocha && eslint src && jshint src",
     "np": "np"
   },
   "keywords": [
@@ -45,6 +45,7 @@
     "eslint-plugin-jest": "^24.3.6",
     "jshint": "^2.13.0",
     "mocha": "^9.0.2",
-    "np": "^7.5.0"
+    "np": "^7.5.0",
+    "nyc": "^15.1.0"
   }
 }
