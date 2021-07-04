@@ -30,7 +30,7 @@ const helpMessage = chalk`
   --yes | -y       Skips the confirmation
 `;
 
-const args = {
+const argsConfig = {
   '--css': String,
   '--css-dest': String,
   '--help': Boolean,
@@ -82,7 +82,7 @@ const checkVersion = () => {
 
 const parseArgs = (rawArgs) => {
   try {
-    const a = arg(args, {
+    const a = arg(argsConfig, {
       argv: rawArgs.slice(2),
     });
 
