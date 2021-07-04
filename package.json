@@ -1,6 +1,6 @@
 {
   "name": "electron-inject-css",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Injects CSS into Electron Apps",
   "main": "src/index.js",
   "repository": {
