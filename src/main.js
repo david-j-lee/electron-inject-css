@@ -30,7 +30,7 @@ const injectCss = async (o) => {
   // Disabled, till this error message can be figured out.
   // await cleanUpOldFiles(o.srcBin);
 
-  logger.log(`${chalk.green.bold('SUCCESS!')}`);
+  logger.log(`${chalk.green.bold('SUCCESS!')}`); // TODO: Provide more information
   return true;
 };
 
@@ -100,30 +100,28 @@ const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
   const root = parse(htmlFile);
   const head = root.querySelector('head');
   if (!head) {
-    logger.verbose(`Head tag not found, skipping.`);
+    logger.verbose(chalk`Head tag {yellow not found}, skipping.`);
     return;
   }
 
   // Check if css file is already linked
   logger.verbose(
-    chalk`Head tag {green found}, adding custom css reference to ${htmlPath}.`
+    chalk`Head tag {green found}, adding css reference {blue ${cssRef}} to {blue ${htmlPath}}.`
   );
-  const existingStylesheetLinkTag = head.querySelector(
-    `link[href="${cssRef}"]`
-  );
-  if (existingStylesheetLinkTag) {
+  const existingLinkTag = head.querySelector(`link[href="${cssRef}"]`);
+  if (existingLinkTag) {
     logger.verbose(
-      chalk`Link to stylesheet, {blue ${cssRef}}, already found in HTML.`
+      chalk`Link to stylesheet skipped, {blue ${cssRef}}, already found.`
     );
     return;
   }
 
   // If not already linked, then link it and save.
-  const stylesheetLinkTag = parse(`<link rel="stylesheet" href="${cssRef}">`);
-  head.appendChild(stylesheetLinkTag);
+  const linkTag = parse(`<link rel="stylesheet" href="${cssRef}">`);
+  head.appendChild(linkTag);
   logger.verbose(chalk`Stylesheet, {blue ${cssRef}}, linked in HTML.`);
-  logger.verbose(chalk`Saving updated HTML to {blue ${htmlPath}}.`);
-  await fs.writeFile(`${htmlPath}`, root.toString(), 'utf8');
+  await fs.writeFile(htmlPath, root.toString(), 'utf8');
+  logger.verbose(chalk`Saved updated HTML to {blue ${htmlPath}}.`);
 };
 
 const repackAsar = (src, dest) => {
