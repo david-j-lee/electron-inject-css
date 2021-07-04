@@ -8,7 +8,7 @@ const semver = require('semver');
 
 const { injectCss } = require('./main');
 const { getProducts, getThemes, getTheme } = require('./themes');
-const { getDirectory, getFileName, normalizePath } = require('./utils');
+const { normalizePath } = require('./utils');
 const { Logger } = require('./logger');
 
 let logger = new Logger();
@@ -112,27 +112,34 @@ const showHelp = () => {
 };
 
 const checkInputs = async (options) => {
-  const wizardTypeTheme = 'I would like to select a theme.';
-  const wizardTypeManual = 'I would like to configure it myself.';
-  const questions = [];
-  if (
-    !options.css &&
-    !options.cssDest &&
-    !options.help &&
-    !options.html &&
-    !options.src &&
-    !options.srcBin
-  ) {
-    questions.push({
-      type: 'list',
-      name: 'wizardType',
-      message: 'How you would like to inject your css?:',
-      choices: [wizardTypeTheme, wizardTypeManual],
-    });
-  }
-  const answers = await inquirer.prompt(questions);
+  let showThemeWizard = !!options.product;
 
-  if (answers.wizardType === wizardTypeTheme) {
+  if (!showThemeWizard) {
+    const wizardTypeTheme = 'I would like to select a theme.';
+    const wizardTypeManual = 'I would like to configure it myself.';
+    const questions = [];
+    if (
+      !options.css &&
+      !options.cssDest &&
+      !options.help &&
+      !options.html &&
+      !options.src &&
+      !options.srcBin
+    ) {
+      questions.push({
+        type: 'list',
+        name: 'wizardType',
+        message: 'How you would like to inject your css?:',
+        choices: [wizardTypeTheme, wizardTypeManual],
+      });
+    }
+    const answers = await inquirer.prompt(questions);
+    if (answers.wizardType === wizardTypeTheme) {
+      showThemeWizard = true;
+    }
+  }
+
+  if (showThemeWizard) {
     options = await checkForTheme(options);
   }
   options = await checkForMissingArgs(options);
@@ -145,64 +152,63 @@ const checkForTheme = async (options) => {
   if (!options.product) {
     productQuestions.push({
       type: 'list',
-      name: 'product',
+      name: 'productInput',
       message: 'Select an application:',
       choices: getProducts(),
     });
   }
-  const { product: productInput } = await inquirer.prompt(productQuestions);
+  const { productInput } = await inquirer.prompt(productQuestions);
+  const productName = options.product || productInput;
 
   const themeQuestions = [];
   if (!options.theme) {
-    const themes = getThemes(productInput);
+    const themes = getThemes(productName);
     if (!themes || themes.length === 0) {
-      logger.log(`No themes found for ${productInput}.`);
+      logger.log(`No themes found for ${productName}.`);
       process.exit(1);
     }
     themeQuestions.push({
       type: 'list',
-      name: 'theme',
+      name: 'themeInput',
       message: 'Select a theme:',
       choices: themes,
     });
   }
-  const { theme: themeInput } = await inquirer.prompt(themeQuestions);
+  const { themeInput } = await inquirer.prompt(themeQuestions);
+  const themeName = options.theme || themeInput;
 
-  const theme = getTheme(productInput, themeInput);
+  const theme = getTheme(productName, themeName);
   if (!theme) {
-    logger.error(
-      `Unable to locate the theme ${themeInput} for ${productInput}.`
-    );
+    logger.error(`Unable to locate the theme ${themeName} for ${productName}.`);
     process.exit(1);
   }
 
-  const src = await getSrcFromTheme(productInput, theme.src);
+  const src = await getSrcFromTheme(productName, theme.src);
 
   return {
     ...options,
     ...theme,
+    product: productName,
+    theme: themeName,
     src,
-    css: `${normalizePath(__dirname)}/themes/${productInput.toLowerCase()}/${
+    css: `${normalizePath(__dirname)}/themes/${productName.toLowerCase()}/${
       theme.css
     }`,
-    product: productInput,
-    theme: themeInput,
   };
 };
 
-const getSrcFromTheme = async (product, paths) => {
-  for (const path of paths) {
+const getSrcFromTheme = async (product, srcGlobs) => {
+  for (const srcGlob of srcGlobs) {
     // Replace %USER_HOME% with the users home directory
-    let parsedPath = path;
-    if (path) {
-      parsedPath = path.replace('%USER_HOME%', normalizePath(os.homedir()));
+    let parsedSrcGlob = srcGlob;
+    if (parsedSrcGlob) {
+      const userHomeDirectory = normalizePath(os.homedir());
+      parsedSrcGlob = parsedSrcGlob.replace('%USER_HOME%', userHomeDirectory);
     }
     // Replace the path glob with the first matching real path
-    const src = getDirectory(parsedPath);
-    const fileName = getFileName(parsedPath);
-    const sources = await glob(src);
-    if (sources.length > 0) {
-      return `${sources[sources.length - 1]}/${fileName}`;
+    const possibleSources = await glob(parsedSrcGlob);
+    if (possibleSources.length > 0) {
+      return possibleSources[possibleSources.length - 1];
     }
   }
   const questions = [

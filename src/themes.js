@@ -16,7 +16,7 @@ const getProduct = (product) => {
     return null;
   }
   return configs.find(
-    (config) => config.name.toLowerCase() === product.toLowerCase()
+    (config) => config.name.toLowerCase() === product.trim().toLowerCase()
   );
 };
 
@@ -29,7 +29,7 @@ const getTheme = (productName, theme) => {
     return null;
   }
   return product.themes.find(
-    (t) => t.name.toLowerCase() === theme.toLowerCase()
+    (t) => t.name.toLowerCase() === theme.trim().toLowerCase()
   );
 };
 
