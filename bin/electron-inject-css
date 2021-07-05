@@ -2,5 +2,12 @@
 
 const { cli } = require('../src/cli');
 cli(process.argv).catch((error) => {
+  if (error.clause) {
+    // eslint-disable-next-line no-console
+    console.log(error.message, error.clause);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(error.message);
+  }
   process.exit(error.exitCode);
 });
