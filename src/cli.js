@@ -21,12 +21,12 @@ const helpMessage = chalk`
                         <product> <theme>
 
 {bold Options}
+  --css | -c       Path to the css file to be injected
+  --css-dest | -d  Glob path to where the css will be stored in unpacked asar
   --help | -h      Shows this help message
   --html | -t      Glob path to the HTML file in the unpacked asar
   --src | -s       Glob path to the asar file
   --src-bin | -b   Path to where the asar file will be unpacked too
-  --css | -c       Path to the css file to be injected
-  --css-dest | -d  Glob path to where the css will be stored in unpacked asar
   --verbose | -v   Shows more detailed logging
   --yes | -y       Skips the confirmation
 `;
