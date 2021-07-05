@@ -2,7 +2,7 @@ const os = require('os');
 
 const arg = require('arg');
 const chalk = require('chalk');
-const glob = require('glob-promise');
+const { promise } = require('glob-promise');
 const inquirer = require('inquirer');
 const semver = require('semver');
 
@@ -203,12 +203,10 @@ const getSrcFromTheme = async (product, srcGlobs) => {
   for (const srcGlob of srcGlobs) {
     // Replace %USER_HOME% with the users home directory
     let parsedSrcGlob = srcGlob;
-    if (parsedSrcGlob) {
-      const userHomeDirectory = normalizePath(os.homedir());
-      parsedSrcGlob = parsedSrcGlob.replace('%USER_HOME%', userHomeDirectory);
-    }
+    const userHomeDirectory = normalizePath(os.homedir());
+    parsedSrcGlob = parsedSrcGlob.replace('%USER_HOME%', userHomeDirectory);
     // Replace the path glob with the first matching real path
-    const possibleSources = await glob(parsedSrcGlob);
+    const possibleSources = await promise(parsedSrcGlob);
     if (possibleSources.length > 0) {
       return possibleSources[possibleSources.length - 1];
     }

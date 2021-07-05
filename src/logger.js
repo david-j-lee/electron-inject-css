@@ -17,9 +17,9 @@ class Logger {
 
   warn(message, optionalParams) {
     if (optionalParams) {
-      console.info(chalk`{yellow WARN} ${message}`, optionalParams);
+      console.warn(chalk`{yellow WARN} ${message}`, optionalParams);
     } else {
-      console.info(chalk`{yellow WARN} ${message}`);
+      console.warn(chalk`{yellow WARN} ${message}`);
     }
   }
 

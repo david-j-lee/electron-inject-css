@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 
 const asar = require('asar');
 const chalk = require('chalk');
-const glob = require('glob-promise');
+const { promise } = require('glob-promise');
 const { parse } = require('node-html-parser');
 
 const ExitProcess = require('./ExitProcess');
@@ -54,7 +54,7 @@ const saveCss = async (srcBin, cssDestGlob, cssSrc) => {
     chalk`Looking for places to output css that match glob {cyan ${cssDestGlob}}.`
   );
 
-  const possibleCssDestinations = await glob(cssDestGlob, { cwd: srcBin });
+  const possibleCssDestinations = await promise(cssDestGlob, { cwd: srcBin });
   if (possibleCssDestinations.length === 0) {
     logger.error(chalk`{red 0} output locations found.`);
     throw new ExitProcess(1, 'No output locations found, nothing to do here.');
@@ -77,7 +77,7 @@ const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
     chalk`Looking for html files in {blue ${srcBin}} with glob of {cyan ${htmlGlob}}`
   );
 
-  const possibleHtmlFiles = await glob(htmlGlob, { cwd: srcBin });
+  const possibleHtmlFiles = await promise(htmlGlob, { cwd: srcBin });
   if (possibleHtmlFiles.length === 0) {
     logger.error(
       chalk`{red 0} html destinations found for html glob {cyan ${htmlGlob}}`
