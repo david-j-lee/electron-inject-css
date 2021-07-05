@@ -14,7 +14,7 @@ const logger = new Logger();
 const injectCss = async (o) => {
   logger.showVerbose = o.verbose;
 
-  await verifyOptions(o);
+  verifyOptions(o);
 
   logger.verbose('Configuration:');
   logger.verbose(o);
@@ -25,17 +25,14 @@ const injectCss = async (o) => {
   const cssRef = await saveCss(o.srcBin, o.cssDest, o.css);
   await insertLinkToCssInHtml(o.srcBin, o.html, cssRef);
 
-  repackAsar(o.srcBin, o.src);
-  // TODO: I keep getting this in console when cleanUpOldFiles is not commented
-  // (node:1180) UnhandledPromiseRejectionWarning: Error: ENOENT: no such file or directory, lstat 'path_to_the_unpacked_asar'
-  // Disabled, till this error message can be figured out.
-  // await cleanUpOldFiles(o.srcBin);
+  await repackAsar(o.srcBin, o.src);
+  await cleanUpOldFiles(o.srcBin);
 
   logger.log(`${chalk.green.bold('SUCCESS!')}`); // TODO: Provide more information
   return true;
 };
 
-const verifyOptions = async (options) => {
+const verifyOptions = (options) => {
   if (!options.srcBin) {
     options.srcBin = options.src + '-unpacked';
   }
@@ -125,13 +122,11 @@ const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
   logger.verbose(chalk`Saved updated HTML to {blue ${htmlPath}}.`);
 };
 
-const repackAsar = (src, dest) => {
+const repackAsar = async (src, dest) => {
   logger.verbose(chalk`Repacking {blue ${src}} to {blue ${dest}}.`);
-  asar.createPackage(src, dest);
+  await asar.createPackage(src, dest);
 };
 
-// TODO: Fix or remove
-// eslint-disable-next-line no-unused-vars
 const cleanUpOldFiles = async (srcBin) => {
   logger.verbose(chalk`Removing temporary src bin {blue ${srcBin}}.`);
   await fs.remove(srcBin);
