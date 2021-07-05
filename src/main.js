@@ -11,6 +11,7 @@ const { Logger } = require('./logger');
 
 const logger = new Logger();
 
+// TODO: Better error handling
 const injectCss = async (o) => {
   logger.showVerbose = o.verbose;
 
