@@ -6,6 +6,7 @@ const glob = require('glob-promise');
 const inquirer = require('inquirer');
 const semver = require('semver');
 
+const ExitProcess = require('./ExitProcess');
 const { injectCss } = require('./main');
 const { getProducts, getThemes, getTheme } = require('./themes');
 const { normalizePath } = require('./utils');
@@ -73,7 +74,7 @@ const checkVersion = () => {
     logger.error(
       `Node version ${version} is not supported. Please install version ${lowestRecommended}+.`
     );
-    process.exit(1);
+    throw new ExitProcess(1, 'Node version is not supported');
   }
   if (semver.lt(version, lowestRecommended)) {
     logger.warn(`Node version ${lowestRecommended}+ is recommended.`);
@@ -99,16 +100,17 @@ const parseArgs = (rawArgs) => {
       css: a['--css'],
       cssDest: a['--css-dest'],
       verbose: a['--verbose'],
+      yes: a['--yes'],
     };
   } catch (error) {
     logger.error(error.message);
-    process.exit(1);
+    throw new ExitProcess(1, 'Unable to parse args', error);
   }
 };
 
 const showHelp = () => {
   logger.log(helpMessage);
-  process.exit(0);
+  throw new ExitProcess(0, 'Nothing to do after showing help menu');
 };
 
 const checkInputs = async (options) => {
@@ -165,7 +167,7 @@ const checkForTheme = async (options) => {
     const themes = getThemes(productName);
     if (!themes || themes.length === 0) {
       logger.log(`No themes found for ${productName}.`);
-      process.exit(1);
+      throw new ExitProcess(1, 'Unable to locate theme, nothing else to do.');
     }
     themeQuestions.push({
       type: 'list',
@@ -180,7 +182,7 @@ const checkForTheme = async (options) => {
   const theme = getTheme(productName, themeName);
   if (!theme) {
     logger.error(`Unable to locate the theme ${themeName} for ${productName}.`);
-    process.exit(1);
+    throw new ExitProcess(1, 'Unable to locate theme, nothing else to do.');
   }
 
   const src = await getSrcFromTheme(productName, theme.src);
@@ -263,6 +265,7 @@ const checkForMissingArgs = async (options) => {
   }
 
   const answers = await inquirer.prompt(questions);
+
   return {
     ...options,
     ...answers,
@@ -276,12 +279,13 @@ const confirmBeforeProceeding = async (options) => {
       type: 'confirm',
       name: 'yes',
       // TODO: provide a listing of expected changes
-      message: `Running this program will modify files on disk. Are you sure you want to continue?`,
+      message:
+        'Running this program will modify files on disk. Are you sure you want to continue?',
     });
-  }
-  const answer = await inquirer.prompt(questions);
-  if (!answer.yes) {
-    process.exit(0);
+    const answer = await inquirer.prompt(questions);
+    if (!answer.yes) {
+      throw new ExitProcess(0, 'Cannot proceed without confirmation.');
+    }
   }
   return {
     ...options,

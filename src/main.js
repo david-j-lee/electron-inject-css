@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const glob = require('glob-promise');
 const { parse } = require('node-html-parser');
 
+const ExitProcess = require('./ExitProcess');
 const { getFileName } = require('./utils');
 const { Logger } = require('./logger');
 
@@ -59,7 +60,7 @@ const saveCss = async (srcBin, cssDestGlob, cssSrc) => {
   const possibleCssDestinations = await glob(cssDestGlob, { cwd: srcBin });
   if (possibleCssDestinations.length === 0) {
     logger.error(chalk`{red 0} output locations found.`);
-    process.exit(1);
+    throw new ExitProcess(1, 'No output locations found, nothing to do here.');
   } else {
     logger.verbose(
       chalk`{green ${possibleCssDestinations.length}} output location(s) found. Using first matching location.`
@@ -84,7 +85,7 @@ const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
     logger.error(
       chalk`{red 0} html destinations found for html glob {cyan ${htmlGlob}}`
     );
-    process.exit(1);
+    throw new ExitProcess(1, 'Unable to locate HTML in unpacked asar.');
   }
   logger.verbose(
     chalk`{green ${possibleHtmlFiles.length}} html file(s) found.`
