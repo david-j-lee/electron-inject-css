@@ -101,6 +101,10 @@
   --name-width: unset;
 }
 
+.mx_SenderProfile_displayName {
+  margin-right: 5px;
+}
+
 /* Chat Participants */
 .mx_MemberList .mx_BaseCard .mx_BaseCard_header {
   margin: 0;
