@@ -90,6 +90,7 @@ const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
   );
 
   // generate the path to the HTML file
+  // TODO: Instead only updating the first file, should update all files
   const partialHtmlPath = possibleHtmlFiles[possibleHtmlFiles.length - 1];
   const htmlPath = `${srcBin}/${partialHtmlPath}`;
 
@@ -99,8 +100,7 @@ const insertLinkToCssInHtml = async (srcBin, htmlGlob, cssRef) => {
   const root = parse(htmlFile);
   const head = root.querySelector('head');
   if (!head) {
-    logger.verbose(chalk`Head tag {yellow not found}, skipping.`);
-    return;
+    throw new ExitProcess(1, 'Unable to locate HEAD tag in HTML document.');
   }
 
   // Check if css file is already linked

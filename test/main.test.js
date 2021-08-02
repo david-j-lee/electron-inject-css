@@ -165,7 +165,7 @@ describe('injectCss', () => {
     }
   });
 
-  it('should gracefully handle missing HEAD tags', async () => {
+  it('should error if HEAD tag cannot be found', async () => {
     const options = {
       product: undefined,
       theme: undefined,
@@ -186,10 +186,13 @@ describe('injectCss', () => {
     fsWriteFileStub.resolves();
     globStub.resolves(['some-path']);
 
-    await main.injectCss(options);
-
-    expect(asarCreatePackageStub).to.have.been.called;
-    expect(asarExtractAllStub).to.have.been.called;
+    try {
+      await main.injectCss(options);
+    } catch (error) {
+      expect(error.exitCode).to.equal(1);
+      expect(asarExtractAllStub).to.have.been.called;
+      expect(asarCreatePackageStub).to.have.not.been.called;
+    }
   });
 
   it('should not inject link tag if HTML already has one', async () => {
